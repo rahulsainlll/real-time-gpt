@@ -1,1 +1,1 @@
-# real-time-gpt
+# Real time gpt
