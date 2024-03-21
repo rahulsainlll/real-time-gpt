@@ -7,7 +7,7 @@ const timeout = 5000;
 
 (async () => {
   const browser = await puppeteer.launch({
-    headless: "false",
+    headless: false,
     // executablePath:
     //   "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
     // userDataDir:
