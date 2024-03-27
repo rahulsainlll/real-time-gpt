@@ -134,6 +134,33 @@ async function waitForEvent(page, event) {
   }, event);
 }
 
+// Changes
+async function getSearchResults(page) {
+  // Wait for the search results container to be present
+  await page.waitForSelector("div#search");
+
+  // Extract the search results
+  const searchResults = await page.evaluate(() => {
+    const results = [];
+    const items = document.querySelectorAll("div.g");
+
+    items.forEach((item) => {
+      const title = item.querySelector("h3")
+        ? item.querySelector("h3").innerText
+        : "";
+      const link = item.querySelector("a") ? item.querySelector("a").href : "";
+      const description = item.querySelector(".VwiC3b")
+        ? item.querySelector(".VwiC3b").innerText
+        : "";
+      results.push({ title, link, description });
+    });
+
+    return results;
+  });
+
+  return searchResults;
+}
+
 (async () => {
   console.log("###########################################");
   console.log("#              F.R.I.D.A.Y.               #");
@@ -142,8 +169,8 @@ async function waitForEvent(page, event) {
   const browser = await puppeteer.launch({
     headless: false,
     executablePath:
-      "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
-    // userDataDir: '/Users/jasonzhou/Library/Application\ Support/Google/Chrome\ Canary/Default',
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    userDataDir: "/Users/rahulsain/Library/Application Support/Google/Chrome",
   });
 
   const page = await browser.newPage();
@@ -306,6 +333,35 @@ async function waitForEvent(page, event) {
       let parts = message_text.split('{"url": "');
       parts = parts[1].split('"}');
       url = parts[0];
+
+      if (url.includes("google.com/search")) {
+        console.log("Performing a Google search.");
+        await page.goto(url, {
+          waitUntil: "domcontentloaded",
+          timeout: timeout,
+        });
+
+        const searchResults = await getSearchResults(page);
+        console.log("Search Results:", searchResults);
+
+        // Prepare the search results to be sent to the user or for further processing
+        // For example, convert searchResults to a string or format as needed
+        const searchResultsFormatted = searchResults
+          .map(
+            (result) => `${result.title}\n${result.link}\n${result.description}`
+          )
+          .join("\n\n");
+        console.log(searchResultsFormatted);
+
+        // Send the formatted search results back to the user or process as needed
+        // This part depends on how you interact with the user (e.g., via command line, web interface, etc.)
+      } else {
+        console.log("Navigating to URL:", url);
+        await page.goto(url, {
+          waitUntil: "domcontentloaded",
+          timeout: timeout,
+        });
+      }
 
       continue;
     }
